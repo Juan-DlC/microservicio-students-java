@@ -1,6 +1,7 @@
 package co.edu.uniremington.msstudents.service;
 
 import co.edu.uniremington.msstudents.client.CourseClient;
+import co.edu.uniremington.msstudents.exception.StudentNotFoundException;
 import co.edu.uniremington.msstudents.model.Student;
 import co.edu.uniremington.msstudents.repository.StudentRepository;
 import org.springframework.stereotype.Service;
@@ -26,25 +27,26 @@ public class StudentService {
     }
 
     public Student update(Long id, Student studentDetails) {
-
         return studentRepository.findById(id).map(existingStudent -> {
-
             existingStudent.setFirstName(studentDetails.getFirstName());
             existingStudent.setLastName(studentDetails.getLastName());
             existingStudent.setEmail(studentDetails.getEmail());
             return studentRepository.save(existingStudent);
-        }).orElseThrow(() -> new RuntimeException("Estudiante no encontrado con ID: " + id));
+        }).orElseThrow(() -> new StudentNotFoundException(id));
     }
 
     public void delete(Long id) {
+        if (!studentRepository.existsById(id)) {
+            throw new StudentNotFoundException(id);
+        }
         studentRepository.deleteById(id);
     }
 
     public Student enrollInCourse(Long studentId, Long courseId) {
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new StudentNotFoundException(studentId));
 
-        // ¡Llamada REST a ms-courses!
+        // Llamada REST a ms-courses — si falla lanza FeignException (manejada en GlobalExceptionHandler)
         courseClient.decreaseQuota(courseId);
 
         student.setCourseId(courseId);
@@ -53,10 +55,9 @@ public class StudentService {
 
     public Student cancelEnrollment(Long studentId) {
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new StudentNotFoundException(studentId));
 
         if (student.getCourseId() != null) {
-            // ¡Llamada REST a ms-courses!
             courseClient.increaseQuota(student.getCourseId());
             student.setCourseId(null);
             return studentRepository.save(student);
