@@ -1,20 +1,31 @@
 package co.edu.uniremington.msstudents.service;
 
 import co.edu.uniremington.msstudents.client.CourseClient;
+import co.edu.uniremington.msstudents.exception.EnrollmentNotFoundException;
 import co.edu.uniremington.msstudents.exception.StudentNotFoundException;
+import co.edu.uniremington.msstudents.exception.StudentNotActiveException;
+import co.edu.uniremington.msstudents.model.Enrollment;
+import co.edu.uniremington.msstudents.model.EnrollmentStatus;
 import co.edu.uniremington.msstudents.model.Student;
+import co.edu.uniremington.msstudents.repository.EnrollmentRepository;
 import co.edu.uniremington.msstudents.repository.StudentRepository;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class StudentService {
 
     private final StudentRepository studentRepository;
+    private final EnrollmentRepository enrollmentRepository;
     private final CourseClient courseClient;
 
-    public StudentService(StudentRepository studentRepository, CourseClient courseClient) {
+    public StudentService(StudentRepository studentRepository,
+                          EnrollmentRepository enrollmentRepository,
+                          CourseClient courseClient) {
         this.studentRepository = studentRepository;
+        this.enrollmentRepository = enrollmentRepository;
         this.courseClient = courseClient;
     }
 
@@ -35,6 +46,13 @@ public class StudentService {
         }).orElseThrow(() -> new StudentNotFoundException(id));
     }
 
+    public Student updateStudentStatus(Long id, boolean isActive) {
+        return studentRepository.findById(id).map(student -> {
+            student.setActive(isActive);
+            return studentRepository.save(student);
+        }).orElseThrow(() -> new StudentNotFoundException(id));
+    }
+
     public void delete(Long id) {
         if (!studentRepository.existsById(id)) {
             throw new StudentNotFoundException(id);
@@ -42,26 +60,27 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
-    public Student enrollInCourse(Long studentId, Long courseId) {
+    public Enrollment enrollInCourse(Long studentId, Long courseId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException(studentId));
+
+        if (!student.isActive()) {
+            throw new StudentNotActiveException(studentId);
+        }
 
         // Llamada REST a ms-courses — si falla lanza FeignException (manejada en GlobalExceptionHandler)
         courseClient.decreaseQuota(courseId);
 
-        student.setCourseId(courseId);
-        return studentRepository.save(student);
+        Enrollment enrollment = new Enrollment(studentId, courseId, EnrollmentStatus.ACTIVE, LocalDateTime.now());
+        return enrollmentRepository.save(enrollment);
     }
 
-    public Student cancelEnrollment(Long studentId) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new StudentNotFoundException(studentId));
+    public Enrollment cancelEnrollment(Long enrollmentId) {
+        Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                .orElseThrow(() -> new EnrollmentNotFoundException(enrollmentId));
 
-        if (student.getCourseId() != null) {
-            courseClient.increaseQuota(student.getCourseId());
-            student.setCourseId(null);
-            return studentRepository.save(student);
-        }
-        return student;
+        courseClient.increaseQuota(enrollment.getCourseId());
+        enrollment.setStatus(EnrollmentStatus.CANCELLED);
+        return enrollmentRepository.save(enrollment);
     }
 }

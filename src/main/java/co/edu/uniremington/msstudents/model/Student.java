@@ -26,8 +26,8 @@ public class Student {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "course_id")
-    private Long courseId;
+    @Column(nullable = false)
+    private boolean isActive = true;
 
     public Student() {
     }
@@ -37,6 +37,7 @@ public class Student {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
+        this.isActive = true;
     }
 
     public Long getId() {
@@ -71,11 +72,11 @@ public class Student {
         this.email = email;
     }
 
-    public Long getCourseId() {
-        return courseId;
+    public boolean isActive() {
+        return isActive;
     }
 
-    public void setCourseId(Long courseId)
-    { this.courseId = courseId;
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
     }
 }

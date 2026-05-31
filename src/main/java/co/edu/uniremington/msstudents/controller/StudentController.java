@@ -1,16 +1,19 @@
 package co.edu.uniremington.msstudents.controller;
 
-
+import co.edu.uniremington.msstudents.model.Enrollment;
 import co.edu.uniremington.msstudents.model.Student;
 import co.edu.uniremington.msstudents.service.StudentService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 
 @RestController
@@ -38,18 +41,23 @@ public class StudentController {
         return studentService.update(id, student);
     }
 
+    @PatchMapping("/{id}/status")
+    public Student updateStatus(@PathVariable Long id, @RequestParam boolean isActive) {
+        return studentService.updateStudentStatus(id, isActive);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         studentService.delete(id);
     }
 
     @PutMapping("/{id}/enroll/{courseId}")
-    public Student enroll(@PathVariable Long id, @PathVariable Long courseId) {
+    public Enrollment enroll(@PathVariable Long id, @PathVariable Long courseId) {
         return studentService.enrollInCourse(id, courseId);
     }
 
-    @PutMapping("/{id}/cancel-enrollment")
-    public Student cancelEnrollment(@PathVariable Long id) {
-        return studentService.cancelEnrollment(id);
+    @PutMapping("/enrollments/{enrollmentId}/cancel")
+    public Enrollment cancelEnrollment(@PathVariable Long enrollmentId) {
+        return studentService.cancelEnrollment(enrollmentId);
     }
 }

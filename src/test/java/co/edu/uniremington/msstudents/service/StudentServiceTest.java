@@ -1,8 +1,13 @@
 package co.edu.uniremington.msstudents.service;
 
 import co.edu.uniremington.msstudents.client.CourseClient;
+import co.edu.uniremington.msstudents.exception.EnrollmentNotFoundException;
 import co.edu.uniremington.msstudents.exception.StudentNotFoundException;
+import co.edu.uniremington.msstudents.exception.StudentNotActiveException;
+import co.edu.uniremington.msstudents.model.Enrollment;
+import co.edu.uniremington.msstudents.model.EnrollmentStatus;
 import co.edu.uniremington.msstudents.model.Student;
+import co.edu.uniremington.msstudents.repository.EnrollmentRepository;
 import co.edu.uniremington.msstudents.repository.StudentRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +28,9 @@ class StudentServiceTest {
 
     @Mock
     private StudentRepository studentRepository;
+
+    @Mock
+    private EnrollmentRepository enrollmentRepository;
 
     @Mock
     private CourseClient courseClient;
@@ -84,6 +93,28 @@ class StudentServiceTest {
                 () -> studentService.update(99L, new Student()));
     }
 
+    // ── updateStudentStatus ───────────────────────────────────────────────────
+
+    @Test
+    void updateStudentStatus_WhenStudentExists_ShouldSetActiveAndReturn() {
+        Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+        when(studentRepository.save(any(Student.class))).thenReturn(student);
+
+        Student result = studentService.updateStudentStatus(1L, false);
+
+        assertFalse(result.isActive());
+        verify(studentRepository, times(1)).save(student);
+    }
+
+    @Test
+    void updateStudentStatus_WhenStudentNotFound_ShouldThrowStudentNotFoundException() {
+        when(studentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(StudentNotFoundException.class,
+                () -> studentService.updateStudentStatus(99L, false));
+    }
+
     // ── delete ───────────────────────────────────────────────────────────────
 
     @Test
@@ -106,17 +137,33 @@ class StudentServiceTest {
     // ── enrollInCourse ────────────────────────────────────────────────────────
 
     @Test
-    void enrollInCourse_WhenStudentExists_ShouldCallDecreaseQuotaAndSave() {
+    void enrollInCourse_WhenStudentActiveAndExists_ShouldReturnEnrollment() {
         Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
+        Enrollment savedEnrollment = new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now());
+
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
         doNothing().when(courseClient).decreaseQuota(10L);
-        when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(savedEnrollment);
 
-        Student result = studentService.enrollInCourse(1L, 10L);
+        Enrollment result = studentService.enrollInCourse(1L, 10L);
 
+        assertEquals(EnrollmentStatus.ACTIVE, result.getStatus());
         assertEquals(10L, result.getCourseId());
+        assertEquals(1L, result.getStudentId());
         verify(courseClient, times(1)).decreaseQuota(10L);
-        verify(studentRepository, times(1)).save(student);
+        verify(enrollmentRepository, times(1)).save(any(Enrollment.class));
+    }
+
+    @Test
+    void enrollInCourse_WhenStudentNotActive_ShouldThrowStudentNotActiveException() {
+        Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
+        student.setActive(false);
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+
+        assertThrows(StudentNotActiveException.class,
+                () -> studentService.enrollInCourse(1L, 10L));
+        verify(courseClient, never()).decreaseQuota(any());
+        verify(enrollmentRepository, never()).save(any());
     }
 
     @Test
@@ -131,38 +178,25 @@ class StudentServiceTest {
     // ── cancelEnrollment ──────────────────────────────────────────────────────
 
     @Test
-    void cancelEnrollment_WhenStudentEnrolled_ShouldCallIncreaseQuotaAndClearCourse() {
-        Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
-        student.setCourseId(10L);
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+    void cancelEnrollment_WhenEnrollmentExists_ShouldCallIncreaseQuotaAndCancelEnrollment() {
+        Enrollment enrollment = new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now());
+        when(enrollmentRepository.findById(1L)).thenReturn(Optional.of(enrollment));
         doNothing().when(courseClient).increaseQuota(10L);
-        when(studentRepository.save(any(Student.class))).thenReturn(student);
+        when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(enrollment);
 
-        Student result = studentService.cancelEnrollment(1L);
+        Enrollment result = studentService.cancelEnrollment(1L);
 
-        assertNull(result.getCourseId());
+        assertEquals(EnrollmentStatus.CANCELLED, result.getStatus());
         verify(courseClient, times(1)).increaseQuota(10L);
-        verify(studentRepository, times(1)).save(student);
+        verify(enrollmentRepository, times(1)).save(enrollment);
     }
 
     @Test
-    void cancelEnrollment_WhenStudentNotEnrolled_ShouldReturnStudentWithoutCallingCourseClient() {
-        Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
-        // courseId es null: no está matriculado
-        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+    void cancelEnrollment_WhenEnrollmentNotFound_ShouldThrowEnrollmentNotFoundException() {
+        when(enrollmentRepository.findById(99L)).thenReturn(Optional.empty());
 
-        Student result = studentService.cancelEnrollment(1L);
-
-        assertNull(result.getCourseId());
-        verify(courseClient, never()).increaseQuota(any());
-        verify(studentRepository, never()).save(any());
-    }
-
-    @Test
-    void cancelEnrollment_WhenStudentNotFound_ShouldThrowStudentNotFoundException() {
-        when(studentRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThrows(StudentNotFoundException.class,
+        assertThrows(EnrollmentNotFoundException.class,
                 () -> studentService.cancelEnrollment(99L));
+        verify(courseClient, never()).increaseQuota(any());
     }
 }

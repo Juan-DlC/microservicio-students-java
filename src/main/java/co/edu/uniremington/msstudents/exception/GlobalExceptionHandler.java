@@ -17,6 +17,18 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(EnrollmentNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleEnrollmentNotFound(EnrollmentNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(StudentNotActiveException.class)
+    public ResponseEntity<Map<String, String>> handleStudentNotActive(StudentNotActiveException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
     // Cuando ms-courses responde 409 (sin cupos), Feign lanza FeignException.Conflict
     @ExceptionHandler(FeignException.Conflict.class)
     public ResponseEntity<Map<String, String>> handleFeignConflict(FeignException.Conflict ex) {
