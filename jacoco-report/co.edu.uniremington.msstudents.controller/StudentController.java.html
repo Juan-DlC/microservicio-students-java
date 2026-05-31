@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StudentController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-students</a> &gt; <a href="index.source.html" class="el_package">co.edu.uniremington.msstudents.controller</a> &gt; <span class="el_source">StudentController.java</span></div><h1>StudentController.java</h1><pre class="source lang-java linenums">package co.edu.uniremington.msstudents.controller;
+
+import co.edu.uniremington.msstudents.model.Enrollment;
+import co.edu.uniremington.msstudents.model.Student;
+import co.edu.uniremington.msstudents.service.StudentService;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/students&quot;)
+public class StudentController {
+
+    private final StudentService studentService;
+
+<span class="fc" id="L25">    public StudentController(StudentService studentService) {</span>
+<span class="fc" id="L26">        this.studentService = studentService;</span>
+<span class="fc" id="L27">    }</span>
+
+    @GetMapping
+    public List&lt;Student&gt; findAll() {
+<span class="fc" id="L31">        return studentService.findAll();</span>
+    }
+
+    @PostMapping
+    public Student create(@RequestBody Student student) {
+<span class="fc" id="L36">        return studentService.save(student);</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public Student update(@PathVariable Long id, @RequestBody Student student) {
+<span class="fc" id="L41">        return studentService.update(id, student);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/status&quot;)
+    public Student updateStatus(@PathVariable Long id, @RequestParam boolean isActive) {
+<span class="fc" id="L46">        return studentService.updateStudentStatus(id, isActive);</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public void delete(@PathVariable Long id) {
+<span class="fc" id="L51">        studentService.delete(id);</span>
+<span class="fc" id="L52">    }</span>
+
+    @PutMapping(&quot;/{id}/enroll/{courseId}&quot;)
+    public Enrollment enroll(@PathVariable Long id, @PathVariable Long courseId) {
+<span class="fc" id="L56">        return studentService.enrollInCourse(id, courseId);</span>
+    }
+
+    @PutMapping(&quot;/enrollments/{enrollmentId}/cancel&quot;)
+    public Enrollment cancelEnrollment(@PathVariable Long enrollmentId) {
+<span class="fc" id="L61">        return studentService.cancelEnrollment(enrollmentId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

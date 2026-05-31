@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Student.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ms-students</a> &gt; <a href="index.source.html" class="el_package">co.edu.uniremington.msstudents.model</a> &gt; <span class="el_source">Student.java</span></div><h1>Student.java</h1><pre class="source lang-java linenums">package co.edu.uniremington.msstudents.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = &quot;students&quot;)
+public class Student {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+<span class="fc" id="L29">    @Column(nullable = false)</span>
+    private boolean isActive = true;
+
+<span class="fc" id="L32">    public Student() {</span>
+<span class="fc" id="L33">    }</span>
+
+<span class="fc" id="L35">    public Student(Long id, String firstName, String lastName, String email) {</span>
+<span class="fc" id="L36">        this.id = id;</span>
+<span class="fc" id="L37">        this.firstName = firstName;</span>
+<span class="fc" id="L38">        this.lastName = lastName;</span>
+<span class="fc" id="L39">        this.email = email;</span>
+<span class="fc" id="L40">        this.isActive = true;</span>
+<span class="fc" id="L41">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L44">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="nc" id="L48">        this.id = id;</span>
+<span class="nc" id="L49">    }</span>
+
+    public String getFirstName() {
+<span class="fc" id="L52">        return firstName;</span>
+    }
+
+    public void setFirstName(String firstName) {
+<span class="fc" id="L56">        this.firstName = firstName;</span>
+<span class="fc" id="L57">    }</span>
+
+    public String getLastName() {
+<span class="fc" id="L60">        return lastName;</span>
+    }
+
+    public void setLastName(String lastName) {
+<span class="fc" id="L64">        this.lastName = lastName;</span>
+<span class="fc" id="L65">    }</span>
+
+    public String getEmail() {
+<span class="fc" id="L68">        return email;</span>
+    }
+
+    public void setEmail(String email) {
+<span class="fc" id="L72">        this.email = email;</span>
+<span class="fc" id="L73">    }</span>
+
+    public boolean isActive() {
+<span class="fc" id="L76">        return isActive;</span>
+    }
+
+    public void setActive(boolean isActive) {
+<span class="fc" id="L80">        this.isActive = isActive;</span>
+<span class="fc" id="L81">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
