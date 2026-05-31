@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 @FeignClient(name = "ms-courses")
 public interface CourseClient {
 
-    @PutMapping("/api/courses/{id}/decrease-quota")
-    void decreaseQuota(@PathVariable("id") Long id);
+    @PutMapping("/api/courses/{id}/reserve-slot")
+    void reserveSlot(@PathVariable("id") Long id);
 
-    @PutMapping("/api/courses/{id}/increase-quota")
-    void increaseQuota(@PathVariable("id") Long id);
+    @PutMapping("/api/courses/{id}/release-slot")
+    void releaseSlot(@PathVariable("id") Long id);
 }

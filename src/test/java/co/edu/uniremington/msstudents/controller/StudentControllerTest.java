@@ -1,5 +1,6 @@
 package co.edu.uniremington.msstudents.controller;
 
+import co.edu.uniremington.msstudents.dto.StudentDto;
 import co.edu.uniremington.msstudents.exception.EnrollmentNotFoundException;
 import co.edu.uniremington.msstudents.exception.GlobalExceptionHandler;
 import co.edu.uniremington.msstudents.exception.StudentNotFoundException;
@@ -71,13 +72,13 @@ class StudentControllerTest {
 
     @Test
     void create_ShouldReturn200WithCreatedStudent() throws Exception {
-        Student toCreate = new Student(null, "Juan", "Pérez", "juan@test.com");
-        Student created  = new Student(1L,   "Juan", "Pérez", "juan@test.com");
-        when(studentService.save(any(Student.class))).thenReturn(created);
+        StudentDto dto   = new StudentDto("Juan", "Pérez", "juan@test.com");
+        Student created  = new Student(1L, "Juan", "Pérez", "juan@test.com");
+        when(studentService.createStudent(any(StudentDto.class))).thenReturn(created);
 
         mockMvc.perform(post("/api/students")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(toCreate)))
+                        .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Juan"));
     }
@@ -154,7 +155,7 @@ class StudentControllerTest {
     @Test
     void enroll_WhenValid_ShouldReturn200WithEnrollment() throws Exception {
         Enrollment enrollment = new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now());
-        when(studentService.enrollInCourse(1L, 10L)).thenReturn(enrollment);
+        when(studentService.enrollStudent(1L, 10L)).thenReturn(enrollment);
 
         mockMvc.perform(put("/api/students/1/enroll/10"))
                 .andExpect(status().isOk())
@@ -164,7 +165,7 @@ class StudentControllerTest {
 
     @Test
     void enroll_WhenStudentNotFound_ShouldReturn404() throws Exception {
-        when(studentService.enrollInCourse(99L, 10L))
+        when(studentService.enrollStudent(99L, 10L))
                 .thenThrow(new StudentNotFoundException(99L));
 
         mockMvc.perform(put("/api/students/99/enroll/10"))
@@ -173,7 +174,7 @@ class StudentControllerTest {
 
     @Test
     void enroll_WhenStudentNotActive_ShouldReturn409() throws Exception {
-        when(studentService.enrollInCourse(1L, 10L))
+        when(studentService.enrollStudent(1L, 10L))
                 .thenThrow(new StudentNotActiveException(1L));
 
         mockMvc.perform(put("/api/students/1/enroll/10"))

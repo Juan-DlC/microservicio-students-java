@@ -1,6 +1,7 @@
 package co.edu.uniremington.msstudents.service;
 
 import co.edu.uniremington.msstudents.client.CourseClient;
+import co.edu.uniremington.msstudents.dto.StudentDto;
 import co.edu.uniremington.msstudents.exception.EnrollmentNotFoundException;
 import co.edu.uniremington.msstudents.exception.StudentNotFoundException;
 import co.edu.uniremington.msstudents.exception.StudentNotActiveException;
@@ -54,15 +55,15 @@ class StudentServiceTest {
         verify(studentRepository, times(1)).findAll();
     }
 
-    // ── save ─────────────────────────────────────────────────────────────────
+    // ── createStudent ────────────────────────────────────────────────────────
 
     @Test
-    void save_ShouldPersistAndReturnStudent() {
-        Student student = new Student(null, "Juan", "Pérez", "juan@test.com");
-        Student saved   = new Student(1L,   "Juan", "Pérez", "juan@test.com");
+    void createStudent_ShouldPersistAndReturnStudent() {
+        StudentDto dto  = new StudentDto("Juan", "Pérez", "juan@test.com");
+        Student saved   = new Student(1L, "Juan", "Pérez", "juan@test.com");
         when(studentRepository.save(any(Student.class))).thenReturn(saved);
 
-        Student result = studentService.save(student);
+        Student result = studentService.createStudent(dto);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -134,60 +135,60 @@ class StudentServiceTest {
         verify(studentRepository, never()).deleteById(any());
     }
 
-    // ── enrollInCourse ────────────────────────────────────────────────────────
+    // ── enrollStudent ─────────────────────────────────────────────────────────
 
     @Test
-    void enrollInCourse_WhenStudentActiveAndExists_ShouldReturnEnrollment() {
+    void enrollStudent_WhenStudentActiveAndExists_ShouldReturnEnrollment() {
         Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
         Enrollment savedEnrollment = new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now());
 
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
-        doNothing().when(courseClient).decreaseQuota(10L);
+        doNothing().when(courseClient).reserveSlot(10L);
         when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(savedEnrollment);
 
-        Enrollment result = studentService.enrollInCourse(1L, 10L);
+        Enrollment result = studentService.enrollStudent(1L, 10L);
 
         assertEquals(EnrollmentStatus.ACTIVE, result.getStatus());
         assertEquals(10L, result.getCourseId());
         assertEquals(1L, result.getStudentId());
-        verify(courseClient, times(1)).decreaseQuota(10L);
+        verify(courseClient, times(1)).reserveSlot(10L);
         verify(enrollmentRepository, times(1)).save(any(Enrollment.class));
     }
 
     @Test
-    void enrollInCourse_WhenStudentNotActive_ShouldThrowStudentNotActiveException() {
+    void enrollStudent_WhenStudentNotActive_ShouldThrowStudentNotActiveException() {
         Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
         student.setActive(false);
         when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
 
         assertThrows(StudentNotActiveException.class,
-                () -> studentService.enrollInCourse(1L, 10L));
-        verify(courseClient, never()).decreaseQuota(any());
+                () -> studentService.enrollStudent(1L, 10L));
+        verify(courseClient, never()).reserveSlot(any());
         verify(enrollmentRepository, never()).save(any());
     }
 
     @Test
-    void enrollInCourse_WhenStudentNotFound_ShouldThrowStudentNotFoundException() {
+    void enrollStudent_WhenStudentNotFound_ShouldThrowStudentNotFoundException() {
         when(studentRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(StudentNotFoundException.class,
-                () -> studentService.enrollInCourse(99L, 1L));
-        verify(courseClient, never()).decreaseQuota(any());
+                () -> studentService.enrollStudent(99L, 1L));
+        verify(courseClient, never()).reserveSlot(any());
     }
 
     // ── cancelEnrollment ──────────────────────────────────────────────────────
 
     @Test
-    void cancelEnrollment_WhenEnrollmentExists_ShouldCallIncreaseQuotaAndCancelEnrollment() {
+    void cancelEnrollment_WhenEnrollmentExists_ShouldCallReleaseSlotAndCancelEnrollment() {
         Enrollment enrollment = new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now());
         when(enrollmentRepository.findById(1L)).thenReturn(Optional.of(enrollment));
-        doNothing().when(courseClient).increaseQuota(10L);
+        doNothing().when(courseClient).releaseSlot(10L);
         when(enrollmentRepository.save(any(Enrollment.class))).thenReturn(enrollment);
 
         Enrollment result = studentService.cancelEnrollment(1L);
 
         assertEquals(EnrollmentStatus.CANCELLED, result.getStatus());
-        verify(courseClient, times(1)).increaseQuota(10L);
+        verify(courseClient, times(1)).releaseSlot(10L);
         verify(enrollmentRepository, times(1)).save(enrollment);
     }
 
@@ -197,6 +198,6 @@ class StudentServiceTest {
 
         assertThrows(EnrollmentNotFoundException.class,
                 () -> studentService.cancelEnrollment(99L));
-        verify(courseClient, never()).increaseQuota(any());
+        verify(courseClient, never()).releaseSlot(any());
     }
 }

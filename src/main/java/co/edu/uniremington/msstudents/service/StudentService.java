@@ -1,6 +1,7 @@
 package co.edu.uniremington.msstudents.service;
 
 import co.edu.uniremington.msstudents.client.CourseClient;
+import co.edu.uniremington.msstudents.dto.StudentDto;
 import co.edu.uniremington.msstudents.exception.EnrollmentNotFoundException;
 import co.edu.uniremington.msstudents.exception.StudentNotFoundException;
 import co.edu.uniremington.msstudents.exception.StudentNotActiveException;
@@ -33,7 +34,8 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
-    public Student save(Student student) {
+    public Student createStudent(StudentDto dto) {
+        Student student = new Student(null, dto.getFirstName(), dto.getLastName(), dto.getEmail());
         return studentRepository.save(student);
     }
 
@@ -60,7 +62,7 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
-    public Enrollment enrollInCourse(Long studentId, Long courseId) {
+    public Enrollment enrollStudent(Long studentId, Long courseId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new StudentNotFoundException(studentId));
 
@@ -69,7 +71,7 @@ public class StudentService {
         }
 
         // Llamada REST a ms-courses — si falla lanza FeignException (manejada en GlobalExceptionHandler)
-        courseClient.decreaseQuota(courseId);
+        courseClient.reserveSlot(courseId);
 
         Enrollment enrollment = new Enrollment(studentId, courseId, EnrollmentStatus.ACTIVE, LocalDateTime.now());
         return enrollmentRepository.save(enrollment);
@@ -79,7 +81,7 @@ public class StudentService {
         Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
                 .orElseThrow(() -> new EnrollmentNotFoundException(enrollmentId));
 
-        courseClient.increaseQuota(enrollment.getCourseId());
+        courseClient.releaseSlot(enrollment.getCourseId());
         enrollment.setStatus(EnrollmentStatus.CANCELLED);
         return enrollmentRepository.save(enrollment);
     }

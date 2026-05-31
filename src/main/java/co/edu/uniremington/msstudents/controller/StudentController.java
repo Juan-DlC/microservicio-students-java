@@ -1,5 +1,6 @@
 package co.edu.uniremington.msstudents.controller;
 
+import co.edu.uniremington.msstudents.dto.StudentDto;
 import co.edu.uniremington.msstudents.model.Enrollment;
 import co.edu.uniremington.msstudents.model.Student;
 import co.edu.uniremington.msstudents.service.StudentService;
@@ -32,8 +33,8 @@ public class StudentController {
     }
 
     @PostMapping
-    public Student create(@RequestBody Student student) {
-        return studentService.save(student);
+    public Student create(@RequestBody StudentDto dto) {
+        return studentService.createStudent(dto);
     }
 
     @PutMapping("/{id}")
@@ -53,7 +54,7 @@ public class StudentController {
 
     @PutMapping("/{id}/enroll/{courseId}")
     public Enrollment enroll(@PathVariable Long id, @PathVariable Long courseId) {
-        return studentService.enrollInCourse(id, courseId);
+        return studentService.enrollStudent(id, courseId);
     }
 
     @PutMapping("/enrollments/{enrollmentId}/cancel")
