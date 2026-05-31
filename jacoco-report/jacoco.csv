@@ -4,8 +4,8 @@ ms-students,co.edu.uniremington.msstudents.model,Student,4,58,0,0,2,23,1,11,1,11
 ms-students,co.edu.uniremington.msstudents.model,Enrollment,16,55,0,0,4,20,4,9,4,9
 ms-students,co.edu.uniremington.msstudents.controller,StudentController,0,43,0,0,0,11,0,8,0,8
 ms-students,co.edu.uniremington.msstudents,MsStudentsApplication,5,3,0,0,2,1,1,1,1,1
-ms-students,co.edu.uniremington.msstudents.service,StudentService,0,168,0,4,0,33,0,16,0,14
-ms-students,co.edu.uniremington.msstudents.dto,StudentDto,36,0,0,0,12,0,8,0,8,0
+ms-students,co.edu.uniremington.msstudents.service,StudentService,0,179,0,4,0,34,0,16,0,14
+ms-students,co.edu.uniremington.msstudents.dto,StudentDto,0,36,0,0,0,12,0,8,0,8
 ms-students,co.edu.uniremington.msstudents.exception,EnrollmentNotFoundException,0,5,0,0,0,2,0,1,0,1
 ms-students,co.edu.uniremington.msstudents.exception,StudentNotFoundException,0,5,0,0,0,2,0,1,0,1
 ms-students,co.edu.uniremington.msstudents.exception,StudentNotActiveException,0,5,0,0,0,2,0,1,0,1
