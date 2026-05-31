@@ -61,7 +61,7 @@ http://localhost:8082/swagger-ui/index.html
 ## Lógica de matrícula
 
 1. Valida que el estudiante exista y esté activo (`isActive = true`).
-2. Llama a `PUT /api/courses/{id}/decrease-quota` en ms-courses vía Feign.
+2. Llama a `PUT /api/courses/{id}/reserve-slot` en ms-courses vía Feign.
 3. Si ms-courses devuelve éxito, guarda el registro de matrícula en H2.
 4. Si ms-courses devuelve 409 (sin cupos), la matrícula es rechazada.
 
@@ -79,7 +79,7 @@ http://localhost:8082/swagger-ui/index.html
 mvn verify
 ```
 
-Ejecuta pruebas unitarias (JUnit 5 + Mockito) y valida cobertura Jacoco ≥ 80%.
+Ejecuta pruebas unitarias (JUnit 6 + Mockito 5.20) y valida cobertura Jacoco ≥ 80%.
 
 - `StudentServiceTest` — lógica de negocio pura, con mocks de repositorio y FeignClient
 - `StudentControllerTest` — endpoints con MockMvc standalone
