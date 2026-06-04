@@ -27,6 +27,8 @@ http://localhost:8082/swagger-ui/index.html
 | Método | URL | Descripción | HTTP |
 |---|---|---|---|
 | GET | `/api/students` | Listar todos los estudiantes | 200 |
+| GET | `/api/students/{id}` | Obtener estudiante por ID | 200 / 404 |
+| GET | `/api/students/{id}/enrollments` | Listar todas las matrículas de un estudiante | 200 / 404 |
 | POST | `/api/students` | Crear estudiante | 200 |
 | PUT | `/api/students/{id}` | Actualizar datos del estudiante | 200 / 404 |
 | PATCH | `/api/students/{id}/status?isActive=false` | Cambiar estado activo/inactivo | 200 / 404 |
