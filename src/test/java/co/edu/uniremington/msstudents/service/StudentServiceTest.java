@@ -55,6 +55,55 @@ class StudentServiceTest {
         verify(studentRepository, times(1)).findAll();
     }
 
+    // ── getStudentById ───────────────────────────────────────────────────────
+
+    @Test
+    void getStudentById_WhenStudentExists_ShouldReturnStudent() {
+        Student student = new Student(1L, "Juan", "Pérez", "juan@test.com");
+        when(studentRepository.findById(1L)).thenReturn(Optional.of(student));
+
+        Student result = studentService.getStudentById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("Juan", result.getFirstName());
+        verify(studentRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void getStudentById_WhenStudentNotFound_ShouldThrowStudentNotFoundException() {
+        when(studentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(StudentNotFoundException.class,
+                () -> studentService.getStudentById(99L));
+    }
+
+    // ── getEnrollmentsByStudentId ─────────────────────────────────────────────
+
+    @Test
+    void getEnrollmentsByStudentId_WhenStudentExists_ShouldReturnEnrollments() {
+        List<Enrollment> enrollments = List.of(
+                new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now()),
+                new Enrollment(2L, 1L, 20L, EnrollmentStatus.CANCELLED, LocalDateTime.now())
+        );
+        when(studentRepository.existsById(1L)).thenReturn(true);
+        when(enrollmentRepository.findByStudentId(1L)).thenReturn(enrollments);
+
+        List<Enrollment> result = studentService.getEnrollmentsByStudentId(1L);
+
+        assertEquals(2, result.size());
+        verify(enrollmentRepository, times(1)).findByStudentId(1L);
+    }
+
+    @Test
+    void getEnrollmentsByStudentId_WhenStudentNotFound_ShouldThrowStudentNotFoundException() {
+        when(studentRepository.existsById(99L)).thenReturn(false);
+
+        assertThrows(StudentNotFoundException.class,
+                () -> studentService.getEnrollmentsByStudentId(99L));
+        verify(enrollmentRepository, never()).findByStudentId(any());
+    }
+
     // ── createStudent ────────────────────────────────────────────────────────
 
     @Test

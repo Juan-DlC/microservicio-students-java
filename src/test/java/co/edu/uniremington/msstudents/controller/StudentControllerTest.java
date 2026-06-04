@@ -68,6 +68,54 @@ class StudentControllerTest {
                 .andExpect(jsonPath("$[0].firstName").value("Juan"));
     }
 
+    // ── GET /api/students/{id} ────────────────────────────────────────────────
+
+    @Test
+    void getStudentById_WhenExists_ShouldReturn200() throws Exception {
+        when(studentService.getStudentById(1L))
+                .thenReturn(new Student(1L, "Juan", "Pérez", "juan@test.com"));
+
+        mockMvc.perform(get("/api/students/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.firstName").value("Juan"));
+    }
+
+    @Test
+    void getStudentById_WhenNotFound_ShouldReturn404() throws Exception {
+        when(studentService.getStudentById(99L))
+                .thenThrow(new StudentNotFoundException(99L));
+
+        mockMvc.perform(get("/api/students/99"))
+                .andExpect(status().isNotFound());
+    }
+
+    // ── GET /api/students/{id}/enrollments ────────────────────────────────────
+
+    @Test
+    void getEnrollmentsByStudentId_WhenStudentExists_ShouldReturn200WithList() throws Exception {
+        List<Enrollment> enrollments = List.of(
+                new Enrollment(1L, 1L, 10L, EnrollmentStatus.ACTIVE, LocalDateTime.now()),
+                new Enrollment(2L, 1L, 20L, EnrollmentStatus.CANCELLED, LocalDateTime.now())
+        );
+        when(studentService.getEnrollmentsByStudentId(1L)).thenReturn(enrollments);
+
+        mockMvc.perform(get("/api/students/1/enrollments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].courseId").value(10))
+                .andExpect(jsonPath("$[1].status").value("CANCELLED"));
+    }
+
+    @Test
+    void getEnrollmentsByStudentId_WhenStudentNotFound_ShouldReturn404() throws Exception {
+        when(studentService.getEnrollmentsByStudentId(99L))
+                .thenThrow(new StudentNotFoundException(99L));
+
+        mockMvc.perform(get("/api/students/99/enrollments"))
+                .andExpect(status().isNotFound());
+    }
+
     // ── POST /api/students ────────────────────────────────────────────────────
 
     @Test

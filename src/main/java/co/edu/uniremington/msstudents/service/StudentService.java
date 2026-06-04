@@ -34,6 +34,18 @@ public class StudentService {
         return studentRepository.findAll();
     }
 
+    public Student getStudentById(Long id) {
+        return studentRepository.findById(id)
+                .orElseThrow(() -> new StudentNotFoundException(id));
+    }
+
+    public List<Enrollment> getEnrollmentsByStudentId(Long studentId) {
+        if (!studentRepository.existsById(studentId)) {
+            throw new StudentNotFoundException(studentId);
+        }
+        return enrollmentRepository.findByStudentId(studentId);
+    }
+
     public Student createStudent(StudentDto dto) {
         Student student = new Student(null, dto.getFirstName(), dto.getLastName(), dto.getEmail());
         return studentRepository.save(student);
