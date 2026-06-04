@@ -119,7 +119,7 @@ class StudentControllerTest {
     // ── POST /api/students ────────────────────────────────────────────────────
 
     @Test
-    void create_ShouldReturn200WithCreatedStudent() throws Exception {
+    void create_ShouldReturn201WithCreatedStudent() throws Exception {
         StudentDto dto   = new StudentDto("Juan", "Pérez", "juan@test.com");
         Student created  = new Student(1L, "Juan", "Pérez", "juan@test.com");
         when(studentService.createStudent(any(StudentDto.class))).thenReturn(created);
@@ -127,7 +127,7 @@ class StudentControllerTest {
         mockMvc.perform(post("/api/students")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.firstName").value("Juan"));
     }
 

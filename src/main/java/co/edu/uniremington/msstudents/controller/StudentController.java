@@ -6,6 +6,8 @@ import co.edu.uniremington.msstudents.model.Student;
 import co.edu.uniremington.msstudents.service.StudentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -50,8 +52,8 @@ public class StudentController {
 
     @Operation(summary = "Create a student", description = "Registers a new student with first name, last name and email")
     @PostMapping
-    public Student create(@RequestBody StudentDto dto) {
-        return studentService.createStudent(dto);
+    public ResponseEntity<Student> create(@RequestBody StudentDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(studentService.createStudent(dto));
     }
 
     @Operation(summary = "Update a student", description = "Updates the personal data of an existing student")
